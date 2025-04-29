@@ -36,3 +36,34 @@
     transform: rotate(360deg);
   }
 }
+header {
+  background-color: #4CAF50;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav li {
+  display: inline;
+  margin: 0 10px;
+}
+
+button {
+  background-color: #f44336;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #d32f2f;
+}

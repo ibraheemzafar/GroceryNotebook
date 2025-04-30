@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { db } from "./firebaseConfig"; // Import Firebase config
+import MyOrdersPage from "./MyOrdersPage";
 import LoginPage from "./LoginPage";
 import AdminPage from "./AdminPage";
 import SignUpPage from "./SignUpPage";
@@ -52,6 +53,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
           <Route path="/admin" element={isAdmin ? <AdminPage /> : <LoginPage />} /> {/* Only admins can access this */}
           <Route path="/orders" element={user ? <OrderPage /> : <LoginPage />} /> {/* Users can place orders */}
         </Routes>

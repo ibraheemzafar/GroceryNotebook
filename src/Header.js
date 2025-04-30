@@ -31,17 +31,22 @@ function Header({ user, isAdmin }) {
             </>
           )}
 
-          {/* {user && isAdmin && (
+          {user && isAdmin && (
             <Button component={Link} to="/admin" color="inherit">
               Admin Panel
             </Button>
           )}
 
           {user && !isAdmin && (
-            <Button component={Link} to="/order" color="inherit">
-              Place Order
-            </Button>
-          )} */}
+            <div>
+              <Button component={Link} to="/orders" color="inherit">
+                Place Order
+              </Button>
+              <Button component={Link} to="/my-orders" color="inherit">
+                My Orders
+              </Button>
+            </div>
+          )}
 
           {user && (
             <Button onClick={handleLogout} color="inherit">

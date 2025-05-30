@@ -11,3 +11,65 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.order-list, .admin-orders {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.order-card, .admin-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.order-header, .admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.order-id {
+  font-weight: bold;
+}
+
+.order-status.packed {
+  color: green;
+  font-weight: bold;
+}
+
+.order-status.pending {
+  color: orange;
+}
+
+.order-products, .admin-products {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.order-products li, .admin-products li {
+  margin-bottom: 4px;
+}
+
+.order-date, .admin-footer {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}

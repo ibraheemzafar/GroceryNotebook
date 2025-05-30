@@ -1,49 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { db } from "./firebaseConfig";
 import {
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc,
-  query,
-  orderBy,
-} from "firebase/firestore";
-import {
-  Card,
-  CardContent,
-  Typography,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Box,
-  Grid,
-  Chip,
-  Divider,
-  CardHeader,
-  Avatar,
+  Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel,
+  Grid, Box, Divider, Chip, Stack
 } from "@mui/material";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import { LocalShipping, Inventory, CheckCircle } from "@mui/icons-material";
+import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { db } from "./firebaseConfig";
 
 const statusColors = {
-  pending: "warning",
-  packing: "info",
-  packed: "primary",
-  delivered: "success",
+  Pending: "warning",
+  Packed: "info",
+  Delivered: "success",
 };
 
-const AdminPage = () => {
+const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const ordersData = snapshot.docs.map((doc) => ({
+    const unsubscribe = onSnapshot(collection(db, "orders"), (snapshot) => {
+      const orderList = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setOrders(ordersData);
+      setOrders(orderList);
     });
 
     return () => unsubscribe();
@@ -55,59 +34,60 @@ const AdminPage = () => {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom textAlign="center">
-        📦 Admin Dashboard – Manage Orders
+    <Box p={3} sx={{ backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+      <Typography variant="h4" gutterBottom fontWeight="bold">
+        Admin Orders
       </Typography>
+
       <Grid container spacing={3}>
-        {orders.map((order, idx) => (
-          <Grid item xs={12} sm={6} md={4} key={order.id}>
-            <Card elevation={3}>
-              <CardHeader
-                avatar={
-                  <Avatar sx={{ bgcolor: "#1976d2" }}>
-                    <AssignmentTurnedInIcon />
-                  </Avatar>
-                }
-                title={`Order #${idx + 1}`}
-                subheader={`ID: ${order.id.slice(0, 6)}...`}
-              />
+        {orders.map((order) => (
+          <Grid item xs={12} md={6} lg={4} key={order.id}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Products:
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="h6">Order ID: {order.id.slice(0, 8)}...</Typography>
+                  <Chip
+                    label={order.status || "Pending"}
+                    color={statusColors[order.status] || "default"}
+                    variant="outlined"
+                  />
+                </Stack>
+
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  User: {order.userId || "Unknown"}
                 </Typography>
-                <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
-                  {order.products?.map((p, i) => (
-                    <li key={i}>
-                      {p.name} × <strong>{p.quantity}</strong>
-                    </li>
-                  ))}
-                </ul>
 
                 <Divider sx={{ my: 2 }} />
 
-                <Typography variant="subtitle2" gutterBottom>
-                  Current Status:
-                </Typography>
-                <Chip
-                  label={order.status || "pending"}
-                  color={statusColors[order.status] || "default"}
-                  sx={{ mb: 2 }}
-                />
+                <Stack direction="row" alignItems="center" mb={1} spacing={1}>
+                  <Inventory fontSize="small" color="action" />
+                  <Typography variant="subtitle2">Products:</Typography>
+                </Stack>
 
-                <FormControl fullWidth>
-                  <InputLabel>Update Status</InputLabel>
+                <ul style={{ paddingLeft: "1rem" }}>
+                  {order.products?.map((product, index) => (
+                    <li key={index}>
+                      {product.name} – {product.quantity}
+                    </li>
+                  )) || <li>No products</li>}
+                </ul>
+
+                <FormControl fullWidth size="small" sx={{ mt: 2 }}>
+                  <InputLabel>Status</InputLabel>
                   <Select
-                    value={order.status || "pending"}
-                    label="Update Status"
-                    onChange={(e) =>
-                      handleStatusChange(order.id, e.target.value)
-                    }
+                    value={order.status || "Pending"}
+                    label="Status"
+                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
                   >
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="packing">Packing</MenuItem>
-                    <MenuItem value="packed">Packed</MenuItem>
-                    <MenuItem value="delivered">Delivered</MenuItem>
+                    <MenuItem value="Pending">
+                      <LocalShipping fontSize="small" sx={{ mr: 1 }} /> Pending
+                    </MenuItem>
+                    <MenuItem value="Packed">
+                      <Inventory fontSize="small" sx={{ mr: 1 }} /> Packed
+                    </MenuItem>
+                    <MenuItem value="Delivered">
+                      <CheckCircle fontSize="small" sx={{ mr: 1 }} /> Delivered
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </CardContent>
@@ -119,4 +99,4 @@ const AdminPage = () => {
   );
 };
 
-export default AdminPage;
+export default AdminOrders;

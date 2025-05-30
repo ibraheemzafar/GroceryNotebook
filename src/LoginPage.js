@@ -18,6 +18,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate(); 
+   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,8 +42,11 @@ const LoginPage = () => {
           navigate("/orders");
         }
       }
-    } catch (error) {
-     
+      } catch (err) {
+      const code = err.code;
+      if (code === "auth/user-not-found") setError("User not found");
+      else if (code === "auth/wrong-password") setError("Wrong password");
+      else setError("Login failed. Try again.");
     }
   };
   return (
@@ -80,6 +84,7 @@ const LoginPage = () => {
           </Box>
         </CardContent>
       </Card>
+      {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.5rem' }} className="text-red-500 text-sm mt-2">{error}</p>}
     </Container>
   );
 };

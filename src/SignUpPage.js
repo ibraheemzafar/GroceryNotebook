@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
+  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate(); 
@@ -31,8 +32,11 @@ const SignupPage = () => {
       });
 
       navigate("/orders"); // ✅ redirect to order page
-    } catch (error) {
-      alert("Signup failed: " + error.message);
+    } catch (err) {
+      const code = err.code;
+      if (code === "auth/email-already-in-use") setError("Email already in use");
+      else if (code === "auth/weak-password") setError("Password too weak");
+      else setError("Signup failed. Try again.");
     }
   };
 
@@ -71,6 +75,7 @@ const SignupPage = () => {
           </Box>
         </CardContent>
       </Card>
+       {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.5rem' }} className="text-red-500 text-sm mt-2">{error}</p>}
     </Container>
   );
 };

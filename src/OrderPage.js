@@ -4,8 +4,10 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import "./PlaceOrderPage.css";
 import { db, auth } from "./firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
 const PlaceOrderPage = () => {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([{ name: "", quantity: "" }]);
   const [contactInfo, setContactInfo] = useState({
     name: "",
@@ -46,9 +48,10 @@ const PlaceOrderPage = () => {
         createdAt: new Date(),
         timestamp: serverTimestamp(), // ✅ this is the fix
       });
-      alert("✅ Order placed successfully!");
+      
       setProducts([{ name: "", quantity: "" }]);
       setContactInfo({ name: "", contact: "", address: "" });
+      navigate("/my-orders");
     } catch (err) {
       alert("❌ Error placing order: " + err.message);
     }

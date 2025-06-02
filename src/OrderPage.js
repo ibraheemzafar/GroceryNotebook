@@ -37,6 +37,10 @@ const PlaceOrderPage = () => {
     setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
   };
 
+const removeProduct = (indexToRemove) => {
+  setProducts((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -115,6 +119,13 @@ const PlaceOrderPage = () => {
                 handleProductChange(idx, "quantity", e.target.value)
               }
             />
+            <button
+              type="button"
+              className="remove-btn"
+              onClick={() => removeProduct(idx)}
+            >
+              ❌
+            </button>
           </div>
         ))}
 

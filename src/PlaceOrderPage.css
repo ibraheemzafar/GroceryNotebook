@@ -87,3 +87,19 @@
 .btn-secondary:hover {
   background-color: #c5c5c5;
 }
+.product-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.remove-btn {
+
+  color: white!important;
+  background-color: white!important;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}

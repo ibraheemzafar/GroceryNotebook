@@ -1,69 +1,175 @@
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { auth, db } from "./firebaseConfig";
+import React, { useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
+import { db } from "./firebaseConfig"; // Your firebase config file
+import {
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  CircularProgress,
+  Alert,
+  Box,
+} from "@mui/material";
 
-const MyOrdersPage = () => {
+export default function MyOrdersPage() {
+  const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const q = query(
-          collection(db, "orders"),
-          where("userId", "==", user.uid)
-        );
-
-        const unsubscribeOrders = onSnapshot(
-          q,
-          (snapshot) => {
-            const userOrders = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
-            setOrders(userOrders);
-            setLoading(false);
-          },
-          (error) => {
-            console.error("Error fetching orders:", error);
-            setLoading(false);
-          }
-        );
-
-        return () => unsubscribeOrders();
-      } else {
-        setOrders([]);
-        setLoading(false);
-      }
+    const auth = getAuth();
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
 
     return () => unsubscribeAuth();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (orders.length === 0) return <p>No orders found.</p>;
+  useEffect(() => {
+    if (!user) {
+      // No user, reset orders and loading
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const q = query(
+      collection(db, "orders"),
+      where("userId", "==", user.uid),
+      orderBy("timestamp", "desc")
+    );
+
+    const unsubscribeOrders = onSnapshot(
+      q,
+      (snapshot) => {
+        const ordersData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setOrders(ordersData);
+        setLoading(false);
+      },
+      (err) => {
+        setError("Failed to load orders: " + err.message);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribeOrders();
+  }, [user]);
+
+  if (loading)
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+
+  if (error)
+    return (
+      <Alert severity="error" sx={{ mt: 3 }}>
+        {error}
+      </Alert>
+    );
+
+  if (!user)
+    return (
+      <Typography variant="h6" align="center" sx={{ mt: 5 }}>
+        Please login to see your orders.
+      </Typography>
+    );
+
+  if (orders.length === 0)
+    return (
+      <Typography variant="h6" align="center" sx={{ mt: 5 }}>
+        No orders found.
+      </Typography>
+    );
 
   return (
-    <div className="order-list">
-      <h2>My Orders</h2>
-      {orders.map((order) => (
-        <div className="order-card" key={order.id}>
-          <div className="order-header">
-            <span>Order ID: {order.id}</span>
-            <span className={`order-status ${order.status}`}>{order.status}</span>
-          </div>
-          <ul className="order-products">
-            {order.products?.map((p, i) => (
-              <li key={i}>
-                <strong>{p.name}</strong> — {p.quantity}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-};
+    <Box sx={{ maxWidth: 900, mx: "auto", p: 2 }}>
+      <Typography variant="h4" gutterBottom align="center">
+        My Orders
+      </Typography>
+      <Grid container spacing={2}>
+        {orders.map((order) => (
+          <Grid item   xs={12} sx={{ width: "100%", maxWidth: 900, mx: "auto", px: 2}} key={order.id}>
+            <Card elevation={3} sx={{ p: 2, borderRadius: 3, bgcolor: "#fff" }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Order ID: <strong>{order.id.slice(0, 8).toUpperCase()}</strong>
+                </Typography>
 
-export default MyOrdersPage;
+                {/* Products Grid */}
+                <Box sx={{ mt: 2 }}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      fontWeight: "bold",
+                      bgcolor: "#f5f5f5",
+                      p: 1,
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography>Name</Typography>
+                    <Typography>Quantity</Typography>
+                  </Box>
+
+                  {order.products?.map((product, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        p: 1,
+                        borderBottom: "1px solid #eee",
+                        bgcolor: idx % 2 === 0 ? "#fafafa" : "#ffffff",
+                      }}
+                    >
+                      <Typography>{product.name}</Typography>
+                      <Typography>{product.quantity}</Typography>
+
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Optional: Add order metadata */}
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Placed on:{" "}
+                    {order.timestamp?.toDate
+                      ? order.timestamp.toDate().toLocaleString()
+                      : "N/A"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Contact: {order.contact}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Address: {order.address}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+    </Box>
+  );
+}

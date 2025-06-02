@@ -1,127 +1,130 @@
-import React, { useState } from "react";
-import {
-  Container,
-  TextField,
-  Button,
-  Typography,
-  IconButton,
-  Box,
-  Paper,
-  Grid,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React, { useState, useEffect } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+
+import { onAuthStateChanged } from "firebase/auth";
+import "./PlaceOrderPage.css";
 import { db, auth } from "./firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
+const PlaceOrderPage = () => {
+  const [products, setProducts] = useState([{ name: "", quantity: "" }]);
+  const [contactInfo, setContactInfo] = useState({
+    name: "",
+    contact: "",
+    address: "",
+  });
+  const [userId, setUserId] = useState("");
 
-const OrderPage = () => {
-  const [products, setProducts] = useState([{ name: "", quantity: 1 }]);
-  const [message, setMessage] = useState("");
-
-  const handleChange = (index, field, value) => {
-    const updated = [...products];
-    updated[index][field] = field === "quantity" ? parseInt(value) : value;
-    setProducts(updated);
-  };
-
-  const handleAddProduct = () => {
-    setProducts([...products, { name: "", quantity: 1 }]);
-  };
-
-  const handleRemoveProduct = (index) => {
-    const updated = [...products];
-    updated.splice(index, 1);
-    setProducts(updated);
-  };
-
-  const handleSubmit = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("You must be logged in to place an order.");
-      return;
-    }
-  
-    const cleanProducts = products.filter(p => p.name.trim() !== "");
-  
-    if (cleanProducts.length === 0) {
-      alert("Please add at least one product.");
-      return;
-    }
-  
-    await addDoc(collection(db, "orders"), {
-      userId: user.uid,             // ✅ Attach user
-      products: cleanProducts,
-      status: "pending",            // default order status
-      createdAt: serverTimestamp(), // for sorting
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) setUserId(user.uid);
     });
-  
-    // Optional: success feedback
-    setMessage("Order placed successfully!");
-    setProducts([{ name: "", quantity: 1 }]);
+    return () => unsubscribe();
+  }, []);
+
+  const handleProductChange = (index, field, value) => {
+    const updated = [...products];
+    updated[index][field] = value;
+    setProducts(updated);
+  };
+
+  const addProduct = () => {
+    setProducts([...products, { name: "", quantity: "" }]);
+  };
+
+  const handleChange = (e) => {
+    setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "orders"), {
+        userId,
+        ...contactInfo,
+        products,
+        status: "pending",
+        createdAt: new Date(),
+        timestamp: serverTimestamp(), // ✅ this is the fix
+      });
+      alert("✅ Order placed successfully!");
+      setProducts([{ name: "", quantity: "" }]);
+      setContactInfo({ name: "", contact: "", address: "" });
+    } catch (err) {
+      alert("❌ Error placing order: " + err.message);
+    }
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          🛒 Place Your Order
-        </Typography>
+    <div className="place-order-wrapper">
+      <h2 className="form-title">🛒 Place Your Order</h2>
+      <form onSubmit={handleSubmit} className="order-form">
+        <div className="form-section">
+          <label>Your Name</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="e.g. John Doe"
+            required
+            value={contactInfo.name}
+            onChange={handleChange}
+          />
+        </div>
 
-        {products.map((product, index) => (
-          <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Product Name"
-                value={product.name}
-                onChange={(e) => handleChange(index, "name", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={4}>
-              <TextField
-                type="number"
-                fullWidth
-                label="Quantity"
-                value={product.quantity}
-                onChange={(e) => handleChange(index, "quantity", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={2} sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton
-                color="error"
-                onClick={() => handleRemoveProduct(index)}
-                disabled={products.length === 1}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
+        <div className="form-section">
+          <label>Contact Number</label>
+          <input
+            type="text"
+            name="contact"
+            placeholder="e.g. +123456789"
+            required
+            value={contactInfo.contact}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-section">
+          <label>Delivery Address</label>
+          <textarea
+            name="address"
+            placeholder="Street, City, ZIP"
+            required
+            value={contactInfo.address}
+            onChange={handleChange}
+          />
+        </div>
+
+        <h3 className="product-header">🧾 Order Items</h3>
+        {products.map((product, idx) => (
+          <div key={idx} className="product-row">
+            <input
+              type="text"
+              placeholder="Product Name"
+              required
+              value={product.name}
+              onChange={(e) => handleProductChange(idx, "name", e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Qty"
+              required
+              value={product.quantity}
+              onChange={(e) =>
+                handleProductChange(idx, "quantity", e.target.value)
+              }
+            />
+          </div>
         ))}
 
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={handleAddProduct}
-          sx={{ mb: 2 }}
-        >
-          Add Product
-        </Button>
+        <button type="button" className="btn-secondary" onClick={addProduct}>
+          ➕ Add Product
+        </button>
 
-        <Box>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Submit Order
-          </Button>
-        </Box>
-
-        {message && (
-          <Typography variant="subtitle1" color="success.main" sx={{ mt: 2 }}>
-            {message}
-          </Typography>
-        )}
-      </Paper>
-    </Container>
+        <button type="submit" className="btn-primary">
+          ✅ Submit Order
+        </button>
+      </form>
+    </div>
   );
 };
 
-export default OrderPage;
+export default PlaceOrderPage;

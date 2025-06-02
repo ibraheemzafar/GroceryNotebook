@@ -1,102 +1,141 @@
 import React, { useEffect, useState } from "react";
 import {
-  Card, CardContent, Typography, MenuItem, Select, FormControl, InputLabel,
-  Grid, Box, Divider, Chip, Stack
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Divider,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { LocalShipping, Inventory, CheckCircle } from "@mui/icons-material";
-import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "./firebaseConfig";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 
-const statusColors = {
-  Pending: "warning",
-  Packed: "info",
-  Delivered: "success",
-};
-
-const AdminOrders = () => {
+const AdminOrdersPage = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "orders"), (snapshot) => {
-      const orderList = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setOrders(orderList);
-    });
+    const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const allOrders = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setOrders(allOrders);
+      },
+      (error) => {
+        console.error("Admin order snapshot error:", error);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    const orderRef = doc(db, "orders", orderId);
-    await updateDoc(orderRef, { status: newStatus });
+    try {
+      const orderRef = doc(db, "orders", orderId);
+      await updateDoc(orderRef, { status: newStatus });
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
   return (
-    <Box p={3} sx={{ backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
-      <Typography variant="h4" gutterBottom fontWeight="bold">
-        Admin Orders
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" gutterBottom>
+        Admin - All Orders
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {orders.map((order) => (
-          <Grid item xs={12} md={6} lg={4} key={order.id}>
-            <Card elevation={4} sx={{ borderRadius: 3 }}>
+         <Grid item sx={{  width: "100%",  maxWidth: "100%", px: { xs: 1, sm: 2 }, display: "flex", justifyContent: "center" }} key={order.id}>
+          <Box
+            sx={{width: "100%", maxWidth: "900px", mx: "auto",    px: { xs: 1, sm: 2 } }}
+          >
+            <Card elevation={3}>
               <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h6">Order ID: {order.id.slice(0, 8)}...</Typography>
-                  <Chip
-                    label={order.status || "Pending"}
-                    color={statusColors[order.status] || "default"}
-                    variant="outlined"
-                  />
-                </Stack>
-
-                <Typography variant="body2" color="text.secondary" mt={1}>
-                  User: {order.userId || "Unknown"}
+                <Typography variant="subtitle2" gutterBottom color="text.secondary">
+                  Order ID: {order.id}
                 </Typography>
+                <Typography variant="h6">{order.name}</Typography>
+                <Typography>📞 {order.contact}</Typography>
+                <Typography>📍 {order.address}</Typography>
+
+                <Divider sx={{ my: 1 }} />
+
+                <Typography variant="subtitle1" gutterBottom>
+                  Products
+                </Typography>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell align="center">Quantity</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {order.products?.map((product, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell align="center">{product.quantity}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
                 <Divider sx={{ my: 2 }} />
 
-                <Stack direction="row" alignItems="center" mb={1} spacing={1}>
-                  <Inventory fontSize="small" color="action" />
-                  <Typography variant="subtitle2">Products:</Typography>
-                </Stack>
+                <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Placed at: {new Date(order.timestamp?.toDate()).toLocaleString()}
+                  </Typography>
 
-                <ul style={{ paddingLeft: "1rem" }}>
-                  {order.products?.map((product, index) => (
-                    <li key={index}>
-                      {product.name} – {product.quantity}
-                    </li>
-                  )) || <li>No products</li>}
-                </ul>
-
-                <FormControl fullWidth size="small" sx={{ mt: 2 }}>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={order.status || "Pending"}
-                    label="Status"
-                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                  >
-                    <MenuItem value="Pending">
-                      <LocalShipping fontSize="small" sx={{ mr: 1 }} /> Pending
-                    </MenuItem>
-                    <MenuItem value="Packed">
-                      <Inventory fontSize="small" sx={{ mr: 1 }} /> Packed
-                    </MenuItem>
-                    <MenuItem value="Delivered">
-                      <CheckCircle fontSize="small" sx={{ mr: 1 }} /> Delivered
-                    </MenuItem>
-                  </Select>
-                </FormControl>
+                  <FormControl size="small" sx={{ minWidth: 140 }}>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={order.status || "Pending"}
+                      label="Status"
+                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    >
+                      <MenuItem value="Pending">Pending</MenuItem>
+                      <MenuItem value="Processing">Processing</MenuItem>
+                      <MenuItem value="Delivered">Delivered</MenuItem>
+                      <MenuItem value="Cancelled">Cancelled</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
               </CardContent>
-            </Card>
+             </Card>
+            </Box>
           </Grid>
         ))}
+
+        {orders.length === 0 && (
+          <Typography variant="body1" sx={{ m: 4 }}>
+            No orders found.
+          </Typography>
+        )}
       </Grid>
     </Box>
   );
 };
 
-export default AdminOrders;
+export default AdminOrdersPage;

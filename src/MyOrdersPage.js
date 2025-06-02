@@ -108,11 +108,14 @@ export default function MyOrdersPage() {
       </Typography>
       <Grid container spacing={2}>
         {orders.map((order) => (
-          <Grid item   xs={12} sx={{ width: "100%", maxWidth: 900, mx: "auto", px: 2}} key={order.id}>
-            <Card elevation={3} sx={{ p: 2, borderRadius: 3, bgcolor: "#fff" }}>
+          <Grid item xs={12} sx={{  width: "100%",  maxWidth: "100%", px: { xs: 1, sm: 2 }, display: "flex", justifyContent: "center" }} key={order.id} >
+           <Box
+              sx={{ width: "100%", maxWidth: 900 }}
+            >
+            <Card elevation={4} sx={{ p: 2, borderRadius: 3, bgcolor: "#fff" }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Order ID: <strong>{order.id.slice(0, 8).toUpperCase()}</strong>
+                  Order Status: <strong>{order.status}</strong>
                 </Typography>
 
                 {/* Products Grid */}
@@ -152,6 +155,9 @@ export default function MyOrdersPage() {
                 {/* Optional: Add order metadata */}
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary">
+                    Order ID: <strong>{order.id.slice(0, 8).toUpperCase()}</strong>
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
                     Placed on:{" "}
                     {order.timestamp?.toDate
                       ? order.timestamp.toDate().toLocaleString()
@@ -166,6 +172,7 @@ export default function MyOrdersPage() {
                 </Box>
               </CardContent>
             </Card>
+            </Box>
           </Grid>
         ))}
       </Grid>

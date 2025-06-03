@@ -14,7 +14,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #c0d7cb;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@
   }
 }
 header {
-  background-color: #4CAF50;
+  background-color: #c0d7cb;
   padding: 10px;
   text-align: center;
   color: white;

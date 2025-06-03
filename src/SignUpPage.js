@@ -11,7 +11,7 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const SignupPage = () => {
   const [error, setError] = useState("");
@@ -42,10 +42,10 @@ const SignupPage = () => {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 10 }}>
-      <Card>
+      <Card sx={{ p: 2 }}>
         <CardContent>
           <Typography variant="h5" align="center" gutterBottom>
-            Sign Up
+            Create Account
           </Typography>
 
           <Box component="form" onSubmit={handleSignup} sx={{ mt: 2 }}>
@@ -69,13 +69,44 @@ const SignupPage = () => {
               required
             />
 
-            <Button type="submit" variant="contained" color="success" fullWidth sx={{ mt: 2 }}>
-              Create Account
+            <Button
+              type="submit"
+              variant="contained"
+              color="success"
+              fullWidth
+              sx={{
+                mt: 2,
+                ":hover": { backgroundColor: "#2e7d32" },
+              }}
+            >
+              Sign Up
             </Button>
+
+            <Link to="/login" style={{ textDecoration: "none" }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                fullWidth
+                sx={{
+                  mt: 2,
+                  ":hover": {
+                    backgroundColor: "#f5f5f5",
+                    borderColor: "#1976d2",
+                  },
+                }}
+              >
+                Already have an account? Login
+              </Button>
+            </Link>
           </Box>
         </CardContent>
       </Card>
-       {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.5rem' }} className="text-red-500 text-sm mt-2">{error}</p>}
+
+      {error && (
+        <Typography color="error" variant="body2" sx={{ mt: 2, textAlign: "center" }}>
+          {error}
+        </Typography>
+      )}
     </Container>
   );
 };

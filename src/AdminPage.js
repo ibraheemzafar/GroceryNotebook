@@ -60,9 +60,12 @@ const AdminOrdersPage = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Admin - All Orders
-      </Typography>
+
+      <Box sx={{ display: "flex", textAlign: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
+        <Typography variant="h5" gutterBottom sx={{ width: "100%"}}>
+          Admin - All Orders
+        </Typography>
+      </Box>  
 
       <Grid container spacing={2}>
         {orders.map((order) => (

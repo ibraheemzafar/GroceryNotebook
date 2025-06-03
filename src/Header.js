@@ -32,7 +32,7 @@ function Header({ user, isAdmin }) {
             fontFamily: "Poppins, sans-serif",
           }}
         >
-          Grocery<span style={{ color: "#66bb6a" }}>Notebook</span>
+          Grocery<span style={{ color: "#66bb6a" }}>Store</span>
         </Typography>
 
 

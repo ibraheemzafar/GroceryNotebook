@@ -9,6 +9,7 @@ import AdminPage from "./AdminPage";
 import SignUpPage from "./SignUpPage";
 import OrderPage from "./OrderPage"; // Import the PlaceOrderPage component
 import Header from './Header'
+import { Navigate } from "react-router-dom";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,14 +49,36 @@ function App() {
 
   return (
     <>
-      <Router> {/* Make sure Router is wrapping your app */}
-      <Header user={user} isAdmin={isAdmin} />
+      <div id="bg-blur" /> {/* This stays behind everything */}
+
+      <Router>
+        <Header user={user} isAdmin={isAdmin} />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
+          <Route
+            path="/"
+            element={
+              user ? (
+                isAdmin ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <Navigate to="/orders" replace />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/login"
+            element={user ? (isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/orders" replace />) : <LoginPage />}
+          />
+          <Route
+            path="/signup"
+            element={user ? (isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/orders" replace />) : <SignUpPage />}
+          />
           <Route path="/my-orders" element={<MyOrdersPage />} />
-          <Route path="/admin" element={isAdmin ? <AdminPage /> : <LoginPage />} /> {/* Only admins can access this */}
-          <Route path="/orders" element={user ? <OrderPage /> : <LoginPage />} /> {/* Users can place orders */}
+          <Route path="/admin" element={isAdmin ? <AdminPage /> : <LoginPage />} />
+          <Route path="/orders" element={user ? <OrderPage /> : <LoginPage />} />
         </Routes>
       </Router>
     </>

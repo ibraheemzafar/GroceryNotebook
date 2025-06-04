@@ -1,126 +1,141 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Button, Stack } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  Button,
+  Stack,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+
 import { auth } from "./firebaseConfig";
 import { signOut } from "firebase/auth";
 
-function Header({ user, isAdmin }) {
-  const navigate = useNavigate();
+const Header = ({ user, isAdmin }) => {
+  const navigate = useNavigate()
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/login");
   };
 
-  return (
-    <AppBar position="static" sx={{
-        bgcolor: "#b1d5be",
-        color: "#333",
-        py: 1,
-        px: { xs: 1, sm: 3 },
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-      }} >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography
-          variant="h5"
-          component={Link}
-          to="/"
-          sx={{
-            fontWeight: 700,
-            color: "#2e7d32",
-            textDecoration: "none",
-            fontFamily: "Poppins, sans-serif",
+
+  const navItems = (
+    <>
+      {!user && (
+        <>
+          <MenuItem component={Link} to="/login" onClick={handleMenuClose}>
+            Login
+          </MenuItem>
+          <MenuItem component={Link} to="/signup" onClick={handleMenuClose}>
+            Signup
+          </MenuItem>
+        </>
+      )}
+      {user && isAdmin && (
+        <MenuItem component={Link} to="/admin" onClick={handleMenuClose}>
+          Admin Panel
+        </MenuItem>
+      )}
+      {user && !isAdmin && (
+        <>
+          <MenuItem component={Link} to="/orders" onClick={handleMenuClose}>
+            Place Order
+          </MenuItem>
+          <MenuItem component={Link} to="/my-orders" onClick={handleMenuClose}>
+            My Orders
+          </MenuItem>
+        </>
+      )}
+      {user && (
+        <MenuItem
+          onClick={() => {
+            handleLogout();
+            handleMenuClose();
           }}
         >
-          Grocery<span style={{ color: "#66bb6a" }}>Store</span>
+          Logout
+        </MenuItem>
+      )}
+    </>
+  );
+
+  return (
+    <AppBar position="sticky" sx={{ bgcolor: "#fff", color: "#333", boxShadow: 2 }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Logo */}
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          sx={{ textDecoration: "none", color: "#2e7d32", fontWeight: "bold" }}
+        >
+          Grocery<span style={{ color: "#66bb6a" }}>Notebook</span>
         </Typography>
 
-
-        <Stack direction="row" spacing={2}>
-          {!user && (
-            <>
-                <Button
-                  component={Link}
-                  to="/login"
-                  variant="outlined"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                  }}
-                >
+        {/* Navigation */}
+        {isMobile ? (
+          <>
+            <IconButton onClick={handleMenuOpen} color="inherit">
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              {navItems}
+            </Menu>
+          </>
+        ) : (
+          <Stack direction="row" spacing={2}>
+            {!user && (
+              <>
+                <Button component={Link} to="/login" variant="text" color="inherit">
                   Login
                 </Button>
-              <Button
-                  component={Link}
-                  to="/signup"
-                  variant="contained"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                    bgcolor: "#2e7d32",
-                    "&:hover": {
-                      bgcolor: "#1b5e20",
-                    },
-                  }}
-                >
+                <Button component={Link} to="/signup" variant="contained" sx={{ borderRadius: "20px", textTransform: "none", bgcolor: "#2e7d32", "&:hover": { bgcolor: "#1b5e20" } }}>
                   Sign Up
                 </Button>
-            </>
-          )}
-
-          {user && isAdmin && (
-            <Button component={Link} to="/admin" variant="outlined"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                  }}>
-              Admin Panel
-            </Button>
-          )}
-
-          {user && !isAdmin && (
-            <div>
-              <Button component={Link} to="/orders" variant="outlined"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                    mr:1
-                  }}>
-                Place Order
+              </>
+            )}
+            {user && isAdmin && (
+              <Button component={Link} to="/admin" color="inherit">
+                Admin Panel
               </Button>
-              <Button component={Link} to="/my-orders" variant="outlined"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                  }}>
-                My Orders
+            )}
+            {user && !isAdmin && (
+              <>
+                <Button component={Link} to="/orders" color="inherit">
+                  Place Order
+                </Button>
+                <Button component={Link} to="/my-orders" color="inherit">
+                  My Orders
+                </Button>
+              </>
+            )}
+            {user && (
+              <Button onClick={handleLogout} sx={{ borderRadius: "20px", textTransform: "none", color: "white", bgcolor: "#2e7d32", "&:hover": { bgcolor: "#1b5e20" } }} >
+                Logout
               </Button>
-            </div>
-          )}
-
-          {user && (
-            <Button onClick={handleLogout} variant="contained"
-                  sx={{
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    fontWeight: 500,
-                    bgcolor: "#2e7d32",
-                    "&:hover": {
-                      bgcolor: "#1b5e20",
-                    },
-                  }}>
-              Logout
-            </Button>
-          )}
-        </Stack>
+            )}
+          </Stack>
+        )}
       </Toolbar>
     </AppBar>
   );
-}
+};
 
 export default Header;

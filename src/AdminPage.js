@@ -111,7 +111,7 @@ const AdminOrdersPage = () => {
                     Placed at: {new Date(order.timestamp?.toDate()).toLocaleString()}
                   </Typography>
 
-                  <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <FormControl size="small" sx={{ minWidth: 140, mt: 1 }}>
                     <InputLabel>Status</InputLabel>
                     <Select
                       value={order.status || "Pending"}
